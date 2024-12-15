@@ -1,0 +1,2 @@
+# Yahtzee
+Auto yahtzee
