@@ -1,0 +1,50 @@
+{
+    "version": 1,
+    "disable_existing_loggers": false,
+    "formatters": {
+        "usual": {
+            "format": "%(asctime)s %(module)s:%(lineno)s %(funcName)s (%(thread)d) [%(levelname)s]: %(message)s"
+        },
+        "simple": {
+            "format": "%(message)s"
+        }
+    },
+
+    "handlers": {
+        "consoleHandler": {
+            "class": "logging.StreamHandler",
+            "level": "INFO",
+            "formatter": "usual",
+            "stream": "ext://sys.stdout"
+        },
+        "fileHandler": {
+            "class": "logging.FileHandler",
+            "level": "DEBUG",
+            "formatter": "usual",
+            "filename": "to be replaced"
+        },
+        "fileHandler2": {
+            "class": "logging.FileHandler",
+            "level": "INFO",
+            "formatter": "simple",
+            "filename": "to be replaced"
+        }
+    },
+
+    "loggers": {
+        "__main__": {
+            "level": "DEBUG",
+            "handlers": ["consoleHandler", "fileHandler"],
+            "propagate": false
+        },
+        "game_record": {
+            "level": "INFO",
+            "handlers": ["fileHandler2"],
+            "propagate": false
+        }
+    },
+
+    "root": {
+        "level": "INFO"
+    }
+}
