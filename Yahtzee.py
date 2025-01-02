@@ -906,32 +906,35 @@ def main() -> None:
             # 1投目
             dice.rollAll()
             logger.info(f'{"Dice1":<15}: {dice}')
-            logger_gr.info(f'{dice}')
+            logger_gr.info(f'd:{dice}')
 
             for rollCount in [2, 3]:
                 # n投目のサイコロを決める
                 reroll: Reroll = evaluator.choiseReroll(dice, rerollMode, choiseMode)
                 logger.info(f'{f"Reroll{rollCount}":<15}: {reroll}')
+                logger_gr.info(f'r:{reroll}')
                 # n投目のサイコロが存在しない場合は抜ける
                 if not reroll.exist(): break
 
                 # n投目
                 dice.reroll(reroll)
                 logger.info(f'{f"Dice{rollCount}":<15}: {dice}')
-                logger_gr.info(f'{dice}')
+                logger_gr.info(f'd:{dice}')
 
             # 役を決定する
             (hand, _) = evaluator.choiseHand(dice, choiseMode)
             field.setDice(hand, dice)
 
             logger.info(f'{"Choise":<15}: {hand.name}')
-            logger_gr.info(f'{hand.name}')
+            logger_gr.info(f'c:{hand.name}')
             field.print()
 
         if maxSum < field.sum():
             maxSum = field.sum()
         sumSum += field.sum()
     
+    logger.info(f'RerollMode: {rerollMode}')
+    logger.info(f'ChoiseMode: {choiseMode}')
     logger.info(f'Maximum: {maxSum}')
     logger.info(f'Average: {sumSum/GAME_COUNT}')
 
