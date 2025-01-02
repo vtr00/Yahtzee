@@ -248,6 +248,33 @@ class Dice:
         """
         return f'{ self.__class__.__name__ }({ repr((self.pips()) )})'
 
+    def __eq__(self, other) -> bool:
+        """equal operator
+
+        Args:
+            other (Any): 比較対象
+
+        Returns:
+            bool: 比較結果
+        """
+        if type(other) == Dice:
+            return self.__dice__ == other.__dice__
+        assert False
+
+    def __ne__(self, other) -> bool:
+        """not equal operator
+
+        Args:
+            other (Any): 比較対象
+
+        Returns:
+            bool: 比較結果
+        """
+        return not self.__eq__(other)
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
     def sort(self) -> None:
         """サイコロの目の昇順に並び替える
         """
@@ -714,17 +741,22 @@ class Evaluator:
     """場とサイコロを評価する
     """
 
-    def __init__(self, field: Field, logger: logging.Logger) -> None:
+    def __init__(self, field: Field, logger: logging.Logger, defaultMode: HandChoiseMode) -> None:
         """コンストラクタ
 
         Args:
             field (Field): フィールド
             logger (logging.Logger): ロガー
+            defaultMode (HandChoiseMode): デフォルトモード
         """
         # 場
         self.__field__: Field = copy.deepcopy(field)
         # ロガー
         self.__logger__: logging.Logger = logger
+        # デフォルト役選択モード
+        self.__defaultMode__: HandChoiseMode = defaultMode
+        # デフォルト役選択モード時の評価結果
+        self.__diceToTupleDict__: dict[Dice, tuple[Hands, int]] = {}
 
     def choiseHand(self, dice: Dice, modeAtHandChoise: HandChoiseMode, modeAtReturnPoint: HandChoiseMode | None = None) -> tuple[Hands, int]:
         """役を選択する
@@ -800,8 +832,7 @@ class Evaluator:
             float: 振り直し時の評価値の平均値
             float: 計算時間
         """
-        sumEvaluatedPoints: int = 0  # 振り直し時の全パターンの評価値の合計
-        count: int = 0  # 振り直しのパターン数
+        evaluatedPointsList: list[int] = []  # 振り直し時の全パターンの評価値リスト
 
         maxEvaluatedDice: Dice = dice
         maxEvaluatedPoints: int = -100
@@ -821,21 +852,27 @@ class Evaluator:
                             tmpDice = Dice(tmpPips)
                             if dice == tmpDice:
                                 (tmpHand, evaluatedPoints) = self.choiseHand(tmpDice, modeBySelf, mode)
+                            elif self.__defaultMode__ == mode:
+                                if tmpDice in self.__diceToTupleDict__:
+                                    (tmpHand, evaluatedPoints) = self.__diceToTupleDict__[tmpDice]
+                                else:
+                                    (tmpHand, evaluatedPoints) = self.choiseHand(tmpDice, mode)
+                                    self.__diceToTupleDict__[tmpDice] = (tmpHand, evaluatedPoints)
                             else:
                                 (tmpHand, evaluatedPoints) = self.choiseHand(tmpDice, mode)
+
                             # self.__logger__.debug(f'{f"Evaluated({tmpDice})":<11}: {evaluatedPoints: >3} <- {tmpHand:<16}')
 
                             if maxEvaluatedPoints < evaluatedPoints:
                                 maxEvaluatedDice = tmpDice
-                                maxEvaluatedPoints = evaluatedPoints
                                 maxEvaluatedHand = tmpHand
+                                maxEvaluatedPoints = evaluatedPoints
 
-                            sumEvaluatedPoints += evaluatedPoints
-                            count += 1
+                            evaluatedPointsList.append(evaluatedPoints)
 
         self.__logger__.debug(f'{f"MaxEvaluated":<11}: {maxEvaluatedPoints: >3} <- {maxEvaluatedHand:<16}({maxEvaluatedDice})')
 
-        expected: float = sumEvaluatedPoints / count
+        expected: float = sum(evaluatedPointsList) / len(evaluatedPointsList)
         endTime: float = time.time()
 
         return (expected, endTime - startTime)

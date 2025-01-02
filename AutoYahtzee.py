@@ -9,7 +9,7 @@ import Yahtzee
 
 # 定数定義
 LOG_FOLDER_NAME: str = 'ay_logs'
-GAME_COUNT: int = 50
+GAME_COUNT: int = 100
 
 
 def main() -> None:
@@ -44,7 +44,7 @@ def main() -> None:
         for choiseCount in range(len(Yahtzee.Hands)):
             logger.info(f'=== {choiseCount+1:>2}/{len(Yahtzee.Hands)}:')
             dice: Yahtzee.Dice = Yahtzee.Dice()
-            evaluator: Yahtzee.Evaluator = Yahtzee.Evaluator(field, logger)
+            evaluator: Yahtzee.Evaluator = Yahtzee.Evaluator(field, logger, rerollMode)
 
             # 1投目
             dice.rollAll()
@@ -79,6 +79,7 @@ def main() -> None:
     logger.info(f'ChoiseMode: {choiseMode.name}')
     logger.info(f'Maximum: {np.max(sumList): >3.3f}')
     logger.info(f'Average: {np.mean(sumList): >3.3f}')
+    logger.info(f'Std.dev: {np.std(sumList): >3.3f}')
 
 
 if __name__ == '__main__':
