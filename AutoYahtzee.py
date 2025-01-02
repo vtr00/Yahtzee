@@ -3,16 +3,17 @@ import json
 import logging
 import logging.config
 import os
+import numpy as np
 
 import Yahtzee
 
 # 定数定義
 LOG_FOLDER_NAME: str = 'ay_logs'
+GAME_COUNT: int = 50
 
 
 def main() -> None:
-    GAME_COUNT: int = 50
-    sumList: list[int] = []
+    sumList: np.NDArray = np.array([])
 
     rerollMode: Yahtzee.HandChoiseMode = Yahtzee.HandChoiseMode.MaximumGain
     choiseMode: Yahtzee.HandChoiseMode = Yahtzee.HandChoiseMode.Balance
@@ -72,22 +73,12 @@ def main() -> None:
             logger_gr.info(f'c:{hand.name}')
             field.print()
 
-        sumList.append(field.sum())
+        sumList = np.append(sumList, field.sum())
 
-    logger.info(f'RerollMode: {rerollMode}')
-    logger.info(f'ChoiseMode: {choiseMode}')
-    logger.info(f'Maximum: {max(sumList)}')
-    logger.info(f'Average: {sum(sumList)/len(sumList)}')
-
-    # Max,      Max     -> Max. 264 Ave. 158.28
-    # Max,      Min     -> Max. 209 Ave. 141.42
-    # Max,      Balance -> Max. 267 Ave. 171.16
-    # Min,      Max     -> Max. 206 Ave. 128.98
-    # Min,      Min     -> Max. 238 Ave. 148.60
-    # Min,      Balance -> Max. 233 Ave. 152.52
-    # Balance,  Max     -> Max. 198 Ave. 131.98
-    # Balance,  Min     -> Max. 206 Ave. 145.38
-    # Balance,  Balance -> Max. 228 Ave. 142.76
+    logger.info(f'RerollMode: {rerollMode.name}')
+    logger.info(f'ChoiseMode: {choiseMode.name}')
+    logger.info(f'Maximum: {np.max(sumList): >3.3f}')
+    logger.info(f'Average: {np.mean(sumList): >3.3f}')
 
 
 if __name__ == '__main__':
