@@ -7,33 +7,35 @@ from enum import Enum
 from typing import Iterator
 
 # 定数定義
-MIN_OF_PIP: int = 1 # サイコロの出目の最小値
-MAX_OF_PIP: int = 6 # サイコロの出目の最大値
-NUM_OF_DICE: int = 5 # サイコロの個数
+MIN_OF_PIP: int = 1  # サイコロの出目の最小値
+MAX_OF_PIP: int = 6  # サイコロの出目の最大値
+NUM_OF_DICE: int = 5  # サイコロの個数
 
-BONUS_BORDER: int = 63 # ボーナス点が入る基準
+BONUS_BORDER: int = 63  # ボーナス点が入る基準
 
-POINT_BONUS: int = 35 # ボーナス点
-POINT_SSTRAIGHT: int = 15 # S.Straightの点数
-POINT_BSTRAIGHT: int = 30 # B.Straightの点数
-POINT_YAHTZEE: int = 50 # Yahtzeeの点数
+POINT_BONUS: int = 35  # ボーナス点
+POINT_SSTRAIGHT: int = 15  # S.Straightの点数
+POINT_BSTRAIGHT: int = 30  # B.Straightの点数
+POINT_YAHTZEE: int = 50  # Yahtzeeの点数
+
 
 class Die:
     """サイコロ1個を表現するクラス
     """
+
     def __init__(self, pip: int = -1) -> None:
         """コンストラクタ
 
         Args:
             pip (int, optional): サイコロの値. Defaults to -1.
         """
-        self.__pip__: int = -1 # サイコロの値
+        self.__pip__: int = -1  # サイコロの値
 
         if pip == -1:
             self.roll()
         else:
             self.setPip(pip)
-    
+
     def __str__(self) -> str:
         """文字列化する
 
@@ -41,7 +43,7 @@ class Die:
             str: 文字列
         """
         return str(self.__pip__)
-    
+
     def __repr__(self) -> str:
         """文字列表現化する
 
@@ -49,7 +51,7 @@ class Die:
             str: 文字列
         """
         return f"{ self.__class__.__name__ }({ repr(self.__pip__) })"
-    
+
     def __eq__(self, other) -> bool:
         """equal operator
 
@@ -81,7 +83,7 @@ class Die:
             int: サイコロの目
         """
         return self.__pip__
-    
+
     def setPip(self, pip: int) -> None:
         """サイコロの目を設定する
 
@@ -95,6 +97,7 @@ class Die:
         """サイコロを振る
         """
         self.setPip(random.randint(MIN_OF_PIP, MAX_OF_PIP))
+
 
 class Reroll:
     def __init__(self, reroll: list[int] | int = []) -> None:
@@ -111,7 +114,7 @@ class Reroll:
         elif type(reroll) is int:
             assert 0 <= reroll and reroll < pow(2, 5)
             self.__indexList__: list[int] = self.__toIndexList__(reroll)
-    
+
     @classmethod
     def __bitCheck__(cls, bit: int, index: int) -> bool:
         """特定のビットが立っているかを確認する
@@ -124,7 +127,7 @@ class Reroll:
             bool: 確認結果
         """
         return (bit // pow(2, index)) % 2 == 1
-    
+
     @classmethod
     def __toIndexList__(cls, bit: int) -> list[int]:
         """ビットを立てる位置のリストに変換する
@@ -139,7 +142,7 @@ class Reroll:
         for index in range(NUM_OF_DICE):
             if cls.__bitCheck__(bit, index):
                 index_list.append(index)
-        
+
         return index_list
 
     @classmethod
@@ -169,7 +172,7 @@ class Reroll:
                 retList += ['-']
 
         return f'[{", ".join(retList)}]'
-    
+
     def __repr__(self) -> str:
         """文字列表現化する
 
@@ -177,7 +180,7 @@ class Reroll:
             str: 文字列
         """
         return f'{ self.__class__.__name__ }({repr(self.__indexList__)})'
-    
+
     def exist(self) -> bool:
         """振り直し対象が存在するか
 
@@ -196,7 +199,7 @@ class Reroll:
             bool: 確認結果
         """
         return self.__bitCheck__(self.__toBit__(self.__indexList__), index)
-    
+
     def toList(self) -> list[int]:
         """リストに変換する
 
@@ -204,6 +207,7 @@ class Reroll:
             list[int]: 振り直し対象のインデックスのリスト
         """
         return self.__indexList__
+
 
 class Dice:
     """サイコロ5個を表現する
@@ -217,7 +221,7 @@ class Dice:
         """
         assert NUM_OF_DICE == len(pips)
 
-        self.__dice__: list[Die] = [Die(pip) for pip in pips] # サイコロリスト
+        self.__dice__: list[Die] = [Die(pip) for pip in pips]  # サイコロリスト
         self.sort()
 
     def __iter__(self) -> Iterator[Die]:
@@ -289,7 +293,7 @@ class Dice:
             elif lpips[lindex] == pips[index]:
                 lindex += 1
                 index += 1
-            else: # lpips[lindex] > pips[index]
+            else:  # lpips[lindex] > pips[index]
                 index += 1
         return reroll
 
@@ -312,6 +316,7 @@ class Dice:
             self.__dice__[index].roll()
         self.sort()
 
+
 class Hands(Enum):
     """役"""
     Ace = 1
@@ -326,6 +331,7 @@ class Hands(Enum):
     SStraight = 14
     BStraight = 15
     Yahtzee = 16
+
 
 class Calculator:
     """役ごとの点数を計算する
@@ -370,13 +376,13 @@ class Calculator:
                 count = 1
             else:
                 count += 1
-            
+
             # 4回一致したらFourDice
             if count == 4:
                 return True
 
         return False
-    
+
     def __isFullHouse__(self, dice: Dice) -> bool:
         """FullHouseかどうかを判定する
 
@@ -411,7 +417,7 @@ class Calculator:
             return True
 
         return False
-    
+
     def __isSStraight__(self, dice: Dice) -> bool:
         """S.Straightかどうかを判定する
 
@@ -431,9 +437,9 @@ class Calculator:
             elif match + 1 == pip:
                 match += 1
                 count += 1
-        
+
         return 4 <= count
-    
+
     def __isBStraight__(self, dice: Dice) -> bool:
         """B.Straghtかどうかを判定する
 
@@ -453,7 +459,7 @@ class Calculator:
             else:
                 return False
         return True
-    
+
     def __isYahtzee__(self, dice: Dice) -> bool:
         """Yahtzeeかどうかを判定する
 
@@ -509,9 +515,9 @@ class Calculator:
                 points = POINT_BSTRAIGHT if self.__isBStraight__(dice) else 0
             case Hands.Yahtzee:
                 points = POINT_YAHTZEE if self.__isYahtzee__(dice) else 0
-            
+
         return points
-    
+
     def getBestPoints(self, hand: Hands) -> int:
         """指定された役での最大点数を取得する
 
@@ -556,8 +562,9 @@ class Calculator:
                 points = POINT_BSTRAIGHT
             case Hands.Yahtzee:
                 points = POINT_YAHTZEE
-        
+
         return points
+
 
 class Field:
     """場
@@ -575,8 +582,8 @@ class Field:
         self.__calculator__: Calculator = Calculator(logger)
         # 役ごとに割り当てたサイコロ
         self.__field_dice__: dict[Hands, Dice | None] = {
-            Hands.Ace : None, Hands.Duce : None, Hands.Tri : None, Hands.Four : None, Hands.Five : None, Hands.Six : None, 
-            Hands.Choise : None, Hands.FourDice : None, Hands.FullHouse : None, Hands.SStraight : None, Hands.BStraight : None, Hands.Yahtzee : None
+            Hands.Ace: None, Hands.Duce: None, Hands.Tri: None, Hands.Four: None, Hands.Five: None, Hands.Six: None,
+            Hands.Choise: None, Hands.FourDice: None, Hands.FullHouse: None, Hands.SStraight: None, Hands.BStraight: None, Hands.Yahtzee: None
         }
         # サイコロが割り当てられていない役
         self.__none_hands__: list[Hands] = [
@@ -585,8 +592,8 @@ class Field:
         ]
         # 役ごとの点数
         self.__field_points__: dict[Hands, int] = {
-            Hands.Ace : 0, Hands.Duce : 0, Hands.Tri : 0, Hands.Four : 0, Hands.Five : 0, Hands.Six : 0, 
-            Hands.Choise : 0, Hands.FourDice : 0, Hands.FullHouse : 0, Hands.SStraight : 0, Hands.BStraight : 0, Hands.Yahtzee : 0
+            Hands.Ace: 0, Hands.Duce: 0, Hands.Tri: 0, Hands.Four: 0, Hands.Five: 0, Hands.Six: 0,
+            Hands.Choise: 0, Hands.FourDice: 0, Hands.FullHouse: 0, Hands.SStraight: 0, Hands.BStraight: 0, Hands.Yahtzee: 0
         }
         # ボーナス点
         self.__bonus__: int = 0
@@ -634,7 +641,7 @@ class Field:
         sums: int = sum(self.__field_points__.values())
         sums += self.__bonus__
         return sums
-    
+
     def getInfoToSet(self, hand: Hands, dice: Dice) -> tuple[int, int, int]:
         """役にサイコロを設定したときの情報を取得する
 
@@ -667,10 +674,10 @@ class Field:
         gainedPoints = handPoints + bonusPoints
         # 損失点
         lostPoints = gainedPoints - (maxHandPoints + maxBonusPoints)
-        
+
         assert 0 <= gainedPoints
         assert lostPoints <= 0
-        
+
         # 合計点
         sums += gainedPoints
         return (sums, gainedPoints, lostPoints)
@@ -695,11 +702,13 @@ class Field:
             self.__logger__.info(f'{hand.name:<15}: {value3:>3}/{max3:>3} <- {self.__field_dice__[hand]}')
         self.__logger__.info(f'{"Sum":<15}: {self.sum():>3}')
 
+
 class HandChoiseMode(Enum):
     """役を選択するモード"""
-    MaximumGain = 0 # 取得点を最大化するような役を選択する
-    MinimumLost = 1 # 最適なサイコロで役を選んだ場合との差分(損失点)が最小になるような役を選択する
-    Balance = 2 # 取得点を最大化しつつ損失点を最小化する役を選択する
+    MaximumGain = 0  # 取得点を最大化するような役を選択する
+    MinimumLost = 1  # 最適なサイコロで役を選んだ場合との差分(損失点)が最小になるような役を選択する
+    Balance = 2  # 取得点を最大化しつつ損失点を最小化する役を選択する
+
 
 class Evaluator:
     """場とサイコロを評価する
@@ -765,7 +774,7 @@ class Evaluator:
                         retHand = hand
                         maxPoints = gainedPoints + lostPoints
                         isChoise = True
-            
+
             # 手を選択したときの点を取得する
             if isChoise:
                 match modeAtReturnPoint:
@@ -775,7 +784,7 @@ class Evaluator:
                         retPoints = lostPoints
                     case HandChoiseMode.Balance:
                         retPoints = gainedPoints + lostPoints
-        
+
         return (retHand, retPoints)
 
     def evaluateReroll(self, dice: Dice, reroll: Reroll, mode: HandChoiseMode, modeBySelf: HandChoiseMode) -> tuple[float, float]:
@@ -791,8 +800,8 @@ class Evaluator:
             float: 振り直し時の評価値の平均値
             float: 計算時間
         """
-        sumEvaluatedPoints: int = 0 # 振り直し時の全パターンの評価値の合計
-        count: int = 0 # 振り直しのパターン数
+        sumEvaluatedPoints: int = 0  # 振り直し時の全パターンの評価値の合計
+        count: int = 0  # 振り直しのパターン数
 
         maxEvaluatedDice: Dice = dice
         maxEvaluatedPoints: int = -100
@@ -800,9 +809,9 @@ class Evaluator:
 
         startTime: float = time.time()
 
-        pips: list[int] = dice.pips() # 現在の目
+        pips: list[int] = dice.pips()  # 現在の目
         # 振り直し対象なら1-6、対象外なら現在の目
-        rng: list[range | list[int]] = [ range(1, MAX_OF_PIP+1) if reroll.bitCheck(idx) else [pips[idx]] for idx in range(NUM_OF_DICE) ]
+        rng: list[range | list[int]] = [range(1, MAX_OF_PIP+1) if reroll.bitCheck(idx) else [pips[idx]] for idx in range(NUM_OF_DICE)]
         for pip0 in rng[0]:
             for pip1 in rng[1]:
                 for pip2 in rng[2]:
@@ -852,7 +861,7 @@ class Evaluator:
             # 振り直しを評価する
             self.__logger__.debug(f'{f"Reroll({bit: >2})":<11}: {str(reroll):<16}')
             (evaluatedPoints, time) = self.evaluateReroll(dice, reroll, mode, modeBySelf)
-            
+
             self.__logger__.debug(f'{f"Reroll({bit: >2})":<11}: Ave.Expected: {evaluatedPoints: >7.4f} time: {time: >7.4f}')
 
             # 評価値の高い振り直しを選択する
@@ -862,10 +871,10 @@ class Evaluator:
 
         return retReroll
 
-#########################################################
 
 def main() -> None:
     pass
+
 
 if __name__ == '__main__':
     main()

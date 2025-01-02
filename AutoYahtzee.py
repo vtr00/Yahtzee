@@ -9,6 +9,7 @@ import Yahtzee
 # 定数定義
 LOG_FOLDER_NAME: str = 'ay_logs'
 
+
 def main() -> None:
     GAME_COUNT: int = 50
     sumList: list[int] = []
@@ -55,7 +56,8 @@ def main() -> None:
                 logger.info(f'{f"Reroll{rollCount}":<15}: {reroll}')
                 logger_gr.info(f'r:{reroll}')
                 # n投目のサイコロが存在しない場合は抜ける
-                if not reroll.exist(): break
+                if not reroll.exist():
+                    break
 
                 # n投目
                 dice.reroll(reroll)
@@ -71,7 +73,7 @@ def main() -> None:
             field.print()
 
         sumList.append(field.sum())
-    
+
     logger.info(f'RerollMode: {rerollMode}')
     logger.info(f'ChoiseMode: {choiseMode}')
     logger.info(f'Maximum: {max(sumList)}')
@@ -86,6 +88,7 @@ def main() -> None:
     # Balance,  Max     -> Max. 198 Ave. 131.98
     # Balance,  Min     -> Max. 206 Ave. 145.38
     # Balance,  Balance -> Max. 228 Ave. 142.76
+
 
 if __name__ == '__main__':
     main()
