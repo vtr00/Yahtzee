@@ -364,15 +364,13 @@ class Calculator:
     """役ごとの点数を計算する
     """
 
-    def __init__(self, logger: logging.Logger) -> None:
+    def __init__(self) -> None:
         """コンストラクタ
-
-        Args:
-            logger (logging.Logger): ロガー
         """
-        self.__logger__: logging.Logger = logger
+        pass
 
-    def __countIf__(self, dice: Dice, num: int) -> int:
+    @classmethod
+    def __countIf__(cls, dice: Dice, num: int) -> int:
         """引数と一致する値の個数を返す
 
         Args:
@@ -385,7 +383,8 @@ class Calculator:
         count: int = sum(pip == num for pip in dice.pips())
         return count
 
-    def __isFourDice__(self, dice: Dice) -> bool:
+    @classmethod
+    def __isFourDice__(cls, dice: Dice) -> bool:
         """FourDiceかどうかを判定する
 
         Args:
@@ -410,7 +409,8 @@ class Calculator:
 
         return False
 
-    def __isFullHouse__(self, dice: Dice) -> bool:
+    @classmethod
+    def __isFullHouse__(cls, dice: Dice) -> bool:
         """FullHouseかどうかを判定する
 
         Args:
@@ -445,7 +445,8 @@ class Calculator:
 
         return False
 
-    def __isSStraight__(self, dice: Dice) -> bool:
+    @classmethod
+    def __isSStraight__(cls, dice: Dice) -> bool:
         """S.Straightかどうかを判定する
 
         Args:
@@ -467,7 +468,8 @@ class Calculator:
 
         return 4 <= count
 
-    def __isBStraight__(self, dice: Dice) -> bool:
+    @classmethod
+    def __isBStraight__(cls, dice: Dice) -> bool:
         """B.Straghtかどうかを判定する
 
         Args:
@@ -487,7 +489,8 @@ class Calculator:
                 return False
         return True
 
-    def __isYahtzee__(self, dice: Dice) -> bool:
+    @classmethod
+    def __isYahtzee__(cls, dice: Dice) -> bool:
         """Yahtzeeかどうかを判定する
 
         Args:
@@ -505,7 +508,17 @@ class Calculator:
                 return False
         return True
 
-    def calculatePoints(self, hand: Hands, dice: Dice) -> int:
+    @classmethod
+    def GetNumHands(cls) -> list[Hands]:
+        """数字役を返す
+
+        Returns:
+            list[Hands]: 数字役
+        """
+        return [Hands.Ace, Hands.Duce, Hands.Tri, Hands.Four, Hands.Five, Hands.Six]
+
+    @classmethod
+    def calculatePoints(cls, hand: Hands, dice: Dice) -> int:
         """指定された役での点数を計算する
 
         Args:
@@ -519,33 +532,34 @@ class Calculator:
 
         match hand:
             case Hands.Ace:
-                points = self.__countIf__(dice, 1) * 1
+                points = cls.__countIf__(dice, 1) * 1
             case Hands.Duce:
-                points = self.__countIf__(dice, 2) * 2
+                points = cls.__countIf__(dice, 2) * 2
             case Hands.Tri:
-                points = self.__countIf__(dice, 3) * 3
+                points = cls.__countIf__(dice, 3) * 3
             case Hands.Four:
-                points = self.__countIf__(dice, 4) * 4
+                points = cls.__countIf__(dice, 4) * 4
             case Hands.Five:
-                points = self.__countIf__(dice, 5) * 5
+                points = cls.__countIf__(dice, 5) * 5
             case Hands.Six:
-                points = self.__countIf__(dice, 6) * 6
+                points = cls.__countIf__(dice, 6) * 6
             case Hands.Choise:
                 points = sum(dice.pips())
             case Hands.FourDice:
-                points = sum(dice.pips()) if self.__isFourDice__(dice) else 0
+                points = sum(dice.pips()) if cls.__isFourDice__(dice) else 0
             case Hands.FullHouse:
-                points = sum(dice.pips()) if self.__isFullHouse__(dice) else 0
+                points = sum(dice.pips()) if cls.__isFullHouse__(dice) else 0
             case Hands.SStraight:
-                points = POINT_SSTRAIGHT if self.__isSStraight__(dice) else 0
+                points = POINT_SSTRAIGHT if cls.__isSStraight__(dice) else 0
             case Hands.BStraight:
-                points = POINT_BSTRAIGHT if self.__isBStraight__(dice) else 0
+                points = POINT_BSTRAIGHT if cls.__isBStraight__(dice) else 0
             case Hands.Yahtzee:
-                points = POINT_YAHTZEE if self.__isYahtzee__(dice) else 0
+                points = POINT_YAHTZEE if cls.__isYahtzee__(dice) else 0
 
         return points
 
-    def getBestPoints(self, hand: Hands) -> int:
+    @classmethod
+    def getBestPoints(cls, hand: Hands) -> int:
         """指定された役での最大点数を取得する
 
         Args:
@@ -605,8 +619,6 @@ class Field:
         """
 
         self.__logger__: logging.Logger = logger
-        # 役の計算
-        self.__calculator__: Calculator = Calculator(logger)
         # 役ごとに割り当てたサイコロ
         self.__field_dice__: dict[Hands, Dice | None] = {
             Hands.Ace: None, Hands.Duce: None, Hands.Tri: None, Hands.Four: None, Hands.Five: None, Hands.Six: None,
@@ -633,7 +645,7 @@ class Field:
         """
         return self.__none_hands__
 
-    def setDice(self, hand: Hands, dice: Dice, isForce: bool = False):
+    def setDice(self, hand: Hands, dice: Dice, isForce: bool = False) -> None:
         """役にサイコロを割り当てる
 
         Args:
@@ -644,10 +656,10 @@ class Field:
         assert isForce or hand in self.__none_hands__
 
         self.__field_dice__[hand] = copy.deepcopy(dice)
-        self.__field_points__[hand] = self.__calculator__.calculatePoints(hand, dice)
+        self.__field_points__[hand] = Calculator.calculatePoints(hand, dice)
         self.__none_hands__.remove(hand)
 
-        if self.__bonus__ == 0 and hand in [Hands.Ace, Hands.Duce, Hands.Tri, Hands.Four, Hands.Five, Hands.Six]:
+        if self.__bonus__ == 0 and hand in Calculator.GetNumHands():
             self.__bonus__ = POINT_BONUS if BONUS_BORDER <= self.__sumOfNumHands__() else 0
 
     def __sumOfNumHands__(self) -> int:
@@ -656,7 +668,7 @@ class Field:
         Returns:
             int: 数字役の合計点
         """
-        sums: int = sum([self.__field_points__[hand] for hand in [Hands.Ace, Hands.Duce, Hands.Tri, Hands.Four, Hands.Five, Hands.Six]])
+        sums: int = sum([self.__field_points__[hand] for hand in Calculator.GetNumHands()])
         return sums
 
     def sum(self) -> int:
@@ -685,17 +697,20 @@ class Field:
         sums: int = self.sum()
 
         # 設定する役の点
-        handPoints: int = self.__calculator__.calculatePoints(hand, dice)
+        handPoints: int = Calculator.calculatePoints(hand, dice)
         # 設定する役の最高点
-        maxHandPoints: int = self.__calculator__.getBestPoints(hand)
+        maxHandPoints: int = Calculator.getBestPoints(hand)
 
         # ボーナス点
         bonusPoints: int = 0
         maxBonusPoints: int = 0
         # ボーナスが未取得で、役がボーナスの対象の場合
-        if self.__bonus__ == 0 and hand in [Hands.Ace, Hands.Duce, Hands.Tri, Hands.Four, Hands.Five, Hands.Six]:
+        if self.__bonus__ == 0 and hand in Calculator.GetNumHands():
+            # その役を選択することで得られるボーナス点を計算する
             bonusPoints = POINT_BONUS if BONUS_BORDER <= self.__sumOfNumHands__() + handPoints else 0
+            # 最大点でその役を選択することで得られるボーナス点を計算する
             maxBonusPoints = POINT_BONUS if BONUS_BORDER <= self.__sumOfNumHands__() + maxHandPoints else 0
+            # TODO: その役を選択したことでボーナス点を得られなくなった場合に損失として扱う
 
         # 取得点
         gainedPoints = handPoints + bonusPoints
@@ -713,9 +728,9 @@ class Field:
         """フィールドの状態をログ出力する
         """
         self.__logger__.info(f'[Field]')
-        for hand in [Hands.Ace, Hands.Duce, Hands.Tri, Hands.Four, Hands.Five, Hands.Six]:
+        for hand in Calculator.GetNumHands():
             value1: int = self.__field_points__[hand]
-            max1: int = self.__calculator__.getBestPoints(hand)
+            max1: int = Calculator.getBestPoints(hand)
             self.__logger__.info(f'{hand.name:<15}: {value1:>3}/{max1:>3} <- {self.__field_dice__[hand]}')
 
         self.__logger__.info(f'{f"(SmallSum":<15}: {self.__sumOfNumHands__():>3})')
@@ -725,7 +740,7 @@ class Field:
 
         for hand in [Hands.Choise, Hands.FourDice, Hands.FullHouse, Hands.SStraight, Hands.BStraight, Hands.Yahtzee]:
             value3: int = self.__field_points__[hand]
-            max3: int = self.__calculator__.getBestPoints(hand)
+            max3: int = Calculator.getBestPoints(hand)
             self.__logger__.info(f'{hand.name:<15}: {value3:>3}/{max3:>3} <- {self.__field_dice__[hand]}')
         self.__logger__.info(f'{"Sum":<15}: {self.sum():>3}')
 
@@ -785,30 +800,25 @@ class Evaluator:
             # 現在の役を設定することによる取得点、最高点との差分(損失点)を求める(ボーナスを含む)
             (_, gainedPoints, lostPoints) = self.__field__.getInfoToSet(hand, dice)
 
-            # 手を選択する
-            isChoise: bool = False
+            # 比較対象を選択する
+            comparedPoints: int = 0
             match modeAtHandChoise:
                 case HandChoiseMode.MaximumGain:
-                    # 取得点が大きい役を選ぶ
-                    if maxPoints < gainedPoints:
-                        retHand = hand
-                        maxPoints = gainedPoints
-                        isChoise = True
+                    # 取得点で比較する
+                    comparedPoints = gainedPoints
                 case HandChoiseMode.MinimumLost:
-                    # 損失点が小さい役を選ぶ
-                    if maxPoints < lostPoints:
-                        retHand = hand
-                        maxPoints = lostPoints
-                        isChoise = True
+                    # 損失点で比較する
+                    comparedPoints = lostPoints
                 case HandChoiseMode.Balance:
-                    # 損益点が大きい役を選ぶ
-                    if maxPoints < gainedPoints + lostPoints:
-                        retHand = hand
-                        maxPoints = gainedPoints + lostPoints
-                        isChoise = True
+                    # 損益点で比較する
+                    comparedPoints = gainedPoints + lostPoints
 
-            # 手を選択したときの点を取得する
-            if isChoise:
+            # 比較対象が大きいとき、手を選択する
+            if maxPoints < comparedPoints:
+                retHand = hand
+                maxPoints = comparedPoints
+
+                # 手を選択したときの点を取得する
                 match modeAtReturnPoint:
                     case HandChoiseMode.MaximumGain:
                         retPoints = gainedPoints
@@ -816,6 +826,8 @@ class Evaluator:
                         retPoints = lostPoints
                     case HandChoiseMode.Balance:
                         retPoints = gainedPoints + lostPoints
+            elif maxPoints == comparedPoints:
+                pass  # TODO: どの役を選ぶのが適切か
 
         return (retHand, retPoints)
 
@@ -834,9 +846,9 @@ class Evaluator:
         """
         evaluatedPointsList: list[int] = []  # 振り直し時の全パターンの評価値リスト
 
-        maxEvaluatedDice: Dice = dice
-        maxEvaluatedPoints: int = -100
-        maxEvaluatedHand: Hands = Hands.Ace
+        maxEvaluatedDice: Dice = dice  # 最大評価値でのサイコロ
+        maxEvaluatedHand: Hands = Hands.Ace  # 最大評価値での手
+        maxEvaluatedPoints: int = -100  # 最大評価値での評価値
 
         startTime: float = time.time()
 
@@ -850,12 +862,12 @@ class Evaluator:
                         for pip4 in rng[4]:
                             tmpPips: list[int] = [pip0, pip1, pip2, pip3, pip4]
                             tmpDice = Dice(tmpPips)
-                            if dice == tmpDice:
+                            if dice == tmpDice:  # 振り直しなしの場合
                                 (tmpHand, evaluatedPoints) = self.choiseHand(tmpDice, modeBySelf, mode)
-                            elif self.__defaultMode__ == mode:
-                                if tmpDice in self.__diceToTupleDict__:
+                            elif self.__defaultMode__ == mode:  # 計算済のモードの場合
+                                if tmpDice in self.__diceToTupleDict__:  # 計算済の場合
                                     (tmpHand, evaluatedPoints) = self.__diceToTupleDict__[tmpDice]
-                                else:
+                                else:  # 未計算の場合
                                     (tmpHand, evaluatedPoints) = self.choiseHand(tmpDice, mode)
                                     self.__diceToTupleDict__[tmpDice] = (tmpHand, evaluatedPoints)
                             else:
@@ -863,6 +875,7 @@ class Evaluator:
 
                             # self.__logger__.debug(f'{f"Evaluated({tmpDice})":<11}: {evaluatedPoints: >3} <- {tmpHand:<16}')
 
+                            # ログ出力用に最大評価時のサイコロ、手、最大評価値を保存する
                             if maxEvaluatedPoints < evaluatedPoints:
                                 maxEvaluatedDice = tmpDice
                                 maxEvaluatedHand = tmpHand
