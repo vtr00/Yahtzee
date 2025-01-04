@@ -5,23 +5,16 @@ import random
 import time
 from enum import Enum
 from typing import Iterator
-
-# 定数定義
-MIN_OF_PIP: int = 1  # サイコロの出目の最小値
-MAX_OF_PIP: int = 6  # サイコロの出目の最大値
-NUM_OF_DICE: int = 5  # サイコロの個数
-
-BONUS_BORDER: int = 63  # ボーナス点が入る基準
-
-POINT_BONUS: int = 35  # ボーナス点
-POINT_SSTRAIGHT: int = 15  # S.Straightの点数
-POINT_BSTRAIGHT: int = 30  # B.Straightの点数
-POINT_YAHTZEE: int = 50  # Yahtzeeの点数
+from __future__ import annotations
 
 
 class Die:
     """サイコロ1個を表現するクラス
     """
+
+    # 定数定義
+    MIN_OF_PIP: int = 1  # サイコロの出目の最小値
+    MAX_OF_PIP: int = 6  # サイコロの出目の最大値
 
     def __init__(self, pip: int = -1) -> None:
         """コンストラクタ
@@ -90,16 +83,22 @@ class Die:
         Args:
             pip (int): サイコロの目
         """
-        assert 1 <= pip and pip <= MAX_OF_PIP
+        assert 1 <= pip and pip <= Die.MAX_OF_PIP
         self.__pip__ = pip
 
     def roll(self) -> None:
         """サイコロを振る
         """
-        self.setPip(random.randint(MIN_OF_PIP, MAX_OF_PIP))
+        self.setPip(random.randint(Die.MIN_OF_PIP, Die.MAX_OF_PIP))
 
 
 class Reroll:
+    """5つのサイコロの振り直しを表現する
+    """
+
+    # 定数定義
+    NUM_OF_DICE: int = 5  # サイコロの個数
+
     def __init__(self, reroll: list[int] | int = []) -> None:
         """コンストラクタ
 
@@ -108,7 +107,7 @@ class Reroll:
         """
         self.__indexList__: list[int] = []
         if type(reroll) is list[int]:
-            assert 0 <= min(reroll) and max(reroll) < NUM_OF_DICE
+            assert 0 <= min(reroll) and max(reroll) < Reroll.NUM_OF_DICE
             assert len(reroll) == len(set(reroll))
             self.__indexList__: list[int] = reroll.sort()
         elif type(reroll) is int:
@@ -139,7 +138,7 @@ class Reroll:
             list[int]: ビットを立てる位置のリスト
         """
         index_list: list[int] = []
-        for index in range(NUM_OF_DICE):
+        for index in range(Reroll.NUM_OF_DICE):
             if cls.__bitCheck__(bit, index):
                 index_list.append(index)
 
@@ -165,7 +164,7 @@ class Reroll:
             str: 文字列
         """
         retList: list[str] = []
-        for index in range(NUM_OF_DICE):
+        for index in range(Reroll.NUM_OF_DICE):
             if index in self.__indexList__:
                 retList += [f'{index+1}']
             else:
@@ -213,13 +212,16 @@ class Dice:
     """サイコロ5個を表現する
     """
 
+    # 定数定義
+    NUM_OF_DICE: int = 5  # サイコロの個数
+
     def __init__(self, pips: list[int] = [-1, -1, -1, -1, -1]) -> None:
         """コンストラクタ
 
         Args:
             pips (list[int]): サイコロの目の初期値のリスト
         """
-        assert NUM_OF_DICE == len(pips)
+        assert Dice.NUM_OF_DICE == len(pips)
 
         self.__dice__: list[Die] = [Die(pip) for pip in pips]  # サイコロリスト
         self.sort()
@@ -310,8 +312,8 @@ class Dice:
         lindex: int = 0
         index: int = 0
         reroll: list[int] = []
-        while lindex < NUM_OF_DICE:
-            if index == NUM_OF_DICE:
+        while lindex < Dice.NUM_OF_DICE:
+            if index == Dice.NUM_OF_DICE:
                 reroll.append(lindex)
                 lindex += 1
             elif lpips[lindex] < pips[index]:
@@ -359,10 +361,33 @@ class Hands(Enum):
     BStraight = 15
     Yahtzee = 16
 
+    @classmethod
+    def GetNumHands(cls) -> list[Hands]:
+        """数字役を返す
+
+        Returns:
+            list[Hands]: 数字役
+        """
+        return [Hands.Ace, Hands.Duce, Hands.Tri, Hands.Four, Hands.Five, Hands.Six]
+
+    @classmethod
+    def GetUnNumHands(cls) -> list[Hands]:
+        """非数字役を返す
+
+        Returns:
+            list[Hands]: 非数字役
+        """
+        return [Hands.Choise, Hands.FourDice, Hands.FullHouse, Hands.SStraight, Hands.BStraight, Hands.Yahtzee]
+
 
 class Calculator:
     """役ごとの点数を計算する
     """
+
+    # 定数定義
+    POINT_SSTRAIGHT: int = 15  # S.Straightの点数
+    POINT_BSTRAIGHT: int = 30  # B.Straightの点数
+    POINT_YAHTZEE: int = 50  # Yahtzeeの点数
 
     def __init__(self) -> None:
         """コンストラクタ
@@ -509,15 +534,6 @@ class Calculator:
         return True
 
     @classmethod
-    def GetNumHands(cls) -> list[Hands]:
-        """数字役を返す
-
-        Returns:
-            list[Hands]: 数字役
-        """
-        return [Hands.Ace, Hands.Duce, Hands.Tri, Hands.Four, Hands.Five, Hands.Six]
-
-    @classmethod
     def calculatePoints(cls, hand: Hands, dice: Dice) -> int:
         """指定された役での点数を計算する
 
@@ -550,11 +566,11 @@ class Calculator:
             case Hands.FullHouse:
                 points = sum(dice.pips()) if cls.__isFullHouse__(dice) else 0
             case Hands.SStraight:
-                points = POINT_SSTRAIGHT if cls.__isSStraight__(dice) else 0
+                points = Calculator.POINT_SSTRAIGHT if cls.__isSStraight__(dice) else 0
             case Hands.BStraight:
-                points = POINT_BSTRAIGHT if cls.__isBStraight__(dice) else 0
+                points = Calculator.POINT_BSTRAIGHT if cls.__isBStraight__(dice) else 0
             case Hands.Yahtzee:
-                points = POINT_YAHTZEE if cls.__isYahtzee__(dice) else 0
+                points = Calculator.POINT_YAHTZEE if cls.__isYahtzee__(dice) else 0
 
         return points
 
@@ -598,11 +614,11 @@ class Calculator:
                 # Dice([6,6,6,6,6])
                 points = 30
             case Hands.SStraight:
-                points = POINT_SSTRAIGHT
+                points = Calculator.POINT_SSTRAIGHT
             case Hands.BStraight:
-                points = POINT_BSTRAIGHT
+                points = Calculator.POINT_BSTRAIGHT
             case Hands.Yahtzee:
-                points = POINT_YAHTZEE
+                points = Calculator.POINT_YAHTZEE
 
         return points
 
@@ -610,6 +626,10 @@ class Calculator:
 class Field:
     """場
     """
+    # 定数定義
+    BONUS_BORDER: int = 63  # ボーナス点が入る基準
+
+    POINT_BONUS: int = 35  # ボーナス点
 
     def __init__(self, logger: logging.Logger) -> None:
         """コンストラクタ
@@ -659,8 +679,8 @@ class Field:
         self.__field_points__[hand] = Calculator.calculatePoints(hand, dice)
         self.__none_hands__.remove(hand)
 
-        if self.__bonus__ == 0 and hand in Calculator.GetNumHands():
-            self.__bonus__ = POINT_BONUS if BONUS_BORDER <= self.__sumOfNumHands__() else 0
+        if self.__bonus__ == 0 and hand in Hands.GetNumHands():
+            self.__bonus__ = Field.POINT_BONUS if Field.BONUS_BORDER <= self.__sumOfNumHands__() else 0
 
     def __sumOfNumHands__(self) -> int:
         """数字役の合計点を取得する
@@ -668,7 +688,7 @@ class Field:
         Returns:
             int: 数字役の合計点
         """
-        sums: int = sum([self.__field_points__[hand] for hand in Calculator.GetNumHands()])
+        sums: int = sum([self.__field_points__[hand] for hand in Hands.GetNumHands()])
         return sums
 
     def sum(self) -> int:
@@ -705,11 +725,11 @@ class Field:
         bonusPoints: int = 0
         maxBonusPoints: int = 0
         # ボーナスが未取得で、役がボーナスの対象の場合
-        if self.__bonus__ == 0 and hand in Calculator.GetNumHands():
+        if self.__bonus__ == 0 and hand in Hands.GetNumHands():
             # その役を選択することで得られるボーナス点を計算する
-            bonusPoints = POINT_BONUS if BONUS_BORDER <= self.__sumOfNumHands__() + handPoints else 0
+            bonusPoints = Field.POINT_BONUS if Field.BONUS_BORDER <= self.__sumOfNumHands__() + handPoints else 0
             # 最大点でその役を選択することで得られるボーナス点を計算する
-            maxBonusPoints = POINT_BONUS if BONUS_BORDER <= self.__sumOfNumHands__() + maxHandPoints else 0
+            maxBonusPoints = Field.POINT_BONUS if Field.BONUS_BORDER <= self.__sumOfNumHands__() + maxHandPoints else 0
             # TODO: その役を選択したことでボーナス点を得られなくなった場合に損失として扱う
 
         # 取得点
@@ -728,17 +748,16 @@ class Field:
         """フィールドの状態をログ出力する
         """
         self.__logger__.info(f'[Field]')
-        for hand in Calculator.GetNumHands():
+        for hand in Hands.GetNumHands():
             value1: int = self.__field_points__[hand]
             max1: int = Calculator.getBestPoints(hand)
             self.__logger__.info(f'{hand.name:<15}: {value1:>3}/{max1:>3} <- {self.__field_dice__[hand]}')
 
         self.__logger__.info(f'{f"(SmallSum":<15}: {self.__sumOfNumHands__():>3})')
         value2: int = self.__bonus__
-        max2: int = POINT_BONUS
-        self.__logger__.info(f'{f"Bonus({BONUS_BORDER}<=SS)":<15}: {value2:>3}/{max2:>3}')
+        self.__logger__.info(f'{f"Bonus({Field.BONUS_BORDER}<=SS)":<15}: {value2:>3}/{Field.POINT_BONUS:>3}')
 
-        for hand in [Hands.Choise, Hands.FourDice, Hands.FullHouse, Hands.SStraight, Hands.BStraight, Hands.Yahtzee]:
+        for hand in Hands.GetUnNumHands():
             value3: int = self.__field_points__[hand]
             max3: int = Calculator.getBestPoints(hand)
             self.__logger__.info(f'{hand.name:<15}: {value3:>3}/{max3:>3} <- {self.__field_dice__[hand]}')
@@ -854,7 +873,7 @@ class Evaluator:
 
         pips: list[int] = dice.pips()  # 現在の目
         # 振り直し対象なら1-6、対象外なら現在の目
-        rng: list[range | list[int]] = [range(1, MAX_OF_PIP+1) if reroll.bitCheck(idx) else [pips[idx]] for idx in range(NUM_OF_DICE)]
+        rng: list[range | list[int]] = [range(Die.MIN_OF_PIP, Die.MAX_OF_PIP+1) if reroll.bitCheck(idx) else [pips[idx]] for idx in range(Dice.NUM_OF_DICE)]
         for pip0 in rng[0]:
             for pip1 in rng[1]:
                 for pip2 in rng[2]:
@@ -905,7 +924,7 @@ class Evaluator:
         retReroll: Reroll = Reroll()
         # 最大評価値
         maxEvaluatedPoints: float = -100
-        for bit in range(pow(2, NUM_OF_DICE)):
+        for bit in range(pow(2, Dice.NUM_OF_DICE)):
             reroll: Reroll = Reroll(bit)
 
             # 振り直しを評価する
