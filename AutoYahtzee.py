@@ -26,12 +26,15 @@ def main() -> None:
     if not os.path.exists(f'./{LOG_FOLDER_NAME}'):
         os.mkdir(f'./{LOG_FOLDER_NAME}')
 
+    # ロガー設定
+    timestamp: str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_config["handlers"]["fileHandler3"]["filename"] = f'./{LOG_FOLDER_NAME}/{timestamp}_gs.log'
+
     for gameCount in range(1, GAME_COUNT+1):
         # ロガー設定
-        timestamp: str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_config["handlers"]["fileHandler"]["filename"] = f'./{LOG_FOLDER_NAME}/{timestamp}.log'
-        log_config["handlers"]["fileHandler2"]["filename"] = f'./{LOG_FOLDER_NAME}/{timestamp}_gr.log'
-
+        log_config["handlers"]["fileHandler1"]["filename"] = f'./{LOG_FOLDER_NAME}/{timestamp}_{gameCount:03}.log'
+        log_config["handlers"]["fileHandler2"]["filename"] = f'./{LOG_FOLDER_NAME}/{timestamp}_{gameCount:03}_gr.log'
+        # ロガー生成
         logging.config.dictConfig(log_config)
         logger: logging.Logger = logging.getLogger(__name__)
         logger_gr: logging.Logger = logging.getLogger(f"game_record")
@@ -75,11 +78,14 @@ def main() -> None:
 
         sumList = np.append(sumList, field.sum())
 
-    logger.info(f'RerollMode: {rerollMode.name}')
-    logger.info(f'ChoiseMode: {choiseMode.name}')
-    logger.info(f'Maximum: {np.max(sumList): >3.3f}')
-    logger.info(f'Average: {np.mean(sumList): >3.3f}')
-    logger.info(f'Std.dev: {np.std(sumList): >3.3f}')
+    # ロガー生成
+    logger_gs: logging.Logger = logging.getLogger(f"game_statistics")
+
+    logger_gs.info(f'RerollMode: {rerollMode.name}')
+    logger_gs.info(f'ChoiseMode: {choiseMode.name}')
+    logger_gs.info(f'Maximum: {np.max(sumList): >3.3f}')
+    logger_gs.info(f'Average: {np.mean(sumList): >3.3f}')
+    logger_gs.info(f'Std.dev: {np.std(sumList): >3.3f}')
 
 
 if __name__ == '__main__':

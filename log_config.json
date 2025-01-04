@@ -17,7 +17,7 @@
             "formatter": "usual",
             "stream": "ext://sys.stdout"
         },
-        "fileHandler": {
+        "fileHandler1": {
             "class": "logging.FileHandler",
             "level": "DEBUG",
             "formatter": "usual",
@@ -28,18 +28,29 @@
             "level": "INFO",
             "formatter": "simple",
             "filename": "to be replaced"
+        },
+        "fileHandler3": {
+            "class": "logging.FileHandler",
+            "level": "INFO",
+            "formatter": "simple",
+            "filename": "to be replaced"
         }
     },
 
     "loggers": {
         "__main__": {
             "level": "DEBUG",
-            "handlers": ["consoleHandler", "fileHandler"],
+            "handlers": ["consoleHandler", "fileHandler1"],
             "propagate": false
         },
         "game_record": {
             "level": "INFO",
             "handlers": ["fileHandler2"],
+            "propagate": false
+        },
+        "game_statistics": {
+            "level": "INFO",
+            "handlers": ["consoleHandler", "fileHandler3"],
             "propagate": false
         }
     },
