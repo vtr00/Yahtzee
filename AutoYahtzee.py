@@ -81,10 +81,15 @@ def main() -> None:
     # ロガー生成
     logger_gs: logging.Logger = logging.getLogger(f"game_statistics")
 
+    logger_gs.info(f'Points:')
+    for sum in sumList:
+        logger_gs.info(f' {sum:3}')
     logger_gs.info(f'RerollMode: {rerollMode.name}')
     logger_gs.info(f'ChoiseMode: {choiseMode.name}')
-    logger_gs.info(f'Maximum: {np.max(sumList): >3.3f}')
+    logger_gs.info(f'Maximum: {np.amax(sumList): >3.3f}')
+    logger_gs.info(f'Minimum: {np.amin(sumList): >3.3f}')
     logger_gs.info(f'Average: {np.mean(sumList): >3.3f}')
+    logger_gs.info(f'Median: {np.median(sumList): >3.3f}')
     logger_gs.info(f'Std.dev: {np.std(sumList): >3.3f}')
 
 
