@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import logging
 import logging.config
@@ -5,7 +7,6 @@ import random
 import time
 from enum import Enum
 from typing import Iterator
-from __future__ import annotations
 
 
 class Die:
@@ -362,7 +363,7 @@ class Hands(Enum):
     Yahtzee = 16
 
     @classmethod
-    def GetNumHands(cls) -> list[Hands]:
+    def getNumHands(cls) -> list[Hands]:
         """数字役を返す
 
         Returns:
@@ -371,7 +372,7 @@ class Hands(Enum):
         return [Hands.Ace, Hands.Duce, Hands.Tri, Hands.Four, Hands.Five, Hands.Six]
 
     @classmethod
-    def GetUnNumHands(cls) -> list[Hands]:
+    def getUnNumHands(cls) -> list[Hands]:
         """非数字役を返す
 
         Returns:
@@ -679,7 +680,7 @@ class Field:
         self.__field_points__[hand] = Calculator.calculatePoints(hand, dice)
         self.__none_hands__.remove(hand)
 
-        if self.__bonus__ == 0 and hand in Hands.GetNumHands():
+        if self.__bonus__ == 0 and hand in Hands.getNumHands():
             self.__bonus__ = Field.POINT_BONUS if Field.BONUS_BORDER <= self.__sumOfNumHands__() else 0
 
     def __sumOfNumHands__(self) -> int:
@@ -688,7 +689,7 @@ class Field:
         Returns:
             int: 数字役の合計点
         """
-        sums: int = sum([self.__field_points__[hand] for hand in Hands.GetNumHands()])
+        sums: int = sum([self.__field_points__[hand] for hand in Hands.getNumHands()])
         return sums
 
     def sum(self) -> int:
@@ -711,7 +712,7 @@ class Field:
         Returns:
             int: 役にサイコロを設定したときの合計点
             int: 役にサイコロを設定したときの取得点
-            int: 役にサイコロを設定したときの取得点 - 役から得られる最高点(損失点)
+            int: 役にサイコロを設定したときの取得点 - 役の選択によって得られる最高点(損失点)
         """
         # 現在の点
         sums: int = self.sum()
@@ -725,12 +726,21 @@ class Field:
         bonusPoints: int = 0
         maxBonusPoints: int = 0
         # ボーナスが未取得で、役がボーナスの対象の場合
-        if self.__bonus__ == 0 and hand in Hands.GetNumHands():
+        if self.__bonus__ == 0 and hand in Hands.getNumHands():
+            sumOfNumHands: int = self.__sumOfNumHands__()
             # その役を選択することで得られるボーナス点を計算する
-            bonusPoints = Field.POINT_BONUS if Field.BONUS_BORDER <= self.__sumOfNumHands__() + handPoints else 0
-            # 最大点でその役を選択することで得られるボーナス点を計算する
-            maxBonusPoints = Field.POINT_BONUS if Field.BONUS_BORDER <= self.__sumOfNumHands__() + maxHandPoints else 0
-            # TODO: その役を選択したことでボーナス点を得られなくなった場合に損失として扱う
+            if Field.BONUS_BORDER <= sumOfNumHands + handPoints:
+                bonusPoints = Field.POINT_BONUS
+                maxBonusPoints = Field.POINT_BONUS
+            else:
+                # 割当て済の数字役の点の合計 + その役以外の未割当ての数字役の最大点の合計 を計算する
+                maxSumOfOtherNumHands: int = sumOfNumHands
+                for tmpHand in Hands.getNumHands():
+                    if tmpHand in self.getNoneHands() and hand is not tmpHand:
+                        maxSumOfOtherNumHands += Calculator.getBestPoints(tmpHand)
+                # その役をその点で選択したことでボーナス点を得られなくなった場合に損失点として扱う
+                if maxSumOfOtherNumHands + handPoints < Field.BONUS_BORDER and Field.BONUS_BORDER <= maxSumOfOtherNumHands + maxHandPoints:
+                    maxBonusPoints = Field.POINT_BONUS
 
         # 取得点
         gainedPoints = handPoints + bonusPoints
@@ -748,7 +758,7 @@ class Field:
         """フィールドの状態をログ出力する
         """
         self.__logger__.info(f'[Field]')
-        for hand in Hands.GetNumHands():
+        for hand in Hands.getNumHands():
             value1: int = self.__field_points__[hand]
             max1: int = Calculator.getBestPoints(hand)
             self.__logger__.info(f'{hand.name:<15}: {value1:>3}/{max1:>3} <- {self.__field_dice__[hand]}')
@@ -757,7 +767,7 @@ class Field:
         value2: int = self.__bonus__
         self.__logger__.info(f'{f"Bonus({Field.BONUS_BORDER}<=SS)":<15}: {value2:>3}/{Field.POINT_BONUS:>3}')
 
-        for hand in Hands.GetUnNumHands():
+        for hand in Hands.getUnNumHands():
             value3: int = self.__field_points__[hand]
             max3: int = Calculator.getBestPoints(hand)
             self.__logger__.info(f'{hand.name:<15}: {value3:>3}/{max3:>3} <- {self.__field_dice__[hand]}')
